@@ -16,6 +16,7 @@
 @property NSString *eventSavedId;
 @property (nonatomic, strong) UITextField *textField;
 @property (nonatomic, strong) UILabel *eventLabel;
+@property (nonatomic, strong) UIButton *deleteButton;
 
 
 @end
@@ -38,6 +39,12 @@
     _eventLabel = [UILabel new];
     [self.view addSubview:_eventLabel];
     _eventLabel.textAlignment = NSTextAlignmentCenter;
+    
+    _deleteButton = [UIButton new];
+    [_deleteButton addTarget:self action:@selector(deleteEvent:) forControlEvents:UIControlEventTouchUpInside];
+    [_deleteButton setTitle:@"Delete" forState:UIControlStateNormal];
+    [_deleteButton setBackgroundColor:[UIColor blackColor]];
+    [self.view addSubview:_deleteButton];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -55,6 +62,13 @@
     frame.origin.x = (self.view.frame.size.width - 100) / 2;
     frame.origin.y = self.view.frame.size.height / 2;
     _eventbutton.frame = frame;
+    
+    frame = _deleteButton.frame;
+    frame.size.width = 100;
+    frame.size.height = 50;
+    frame.origin.x = (self.view.frame.size.width - 100) / 2;
+    frame.origin.y = self.view.frame.size.height / 2 + 50;
+    _deleteButton.frame = frame;
     
     frame = _textField.frame;
     frame.size.height  = 40;
@@ -218,6 +232,19 @@
             [alert dismissViewControllerAnimated:YES completion:nil];
         });
     });
+}
+
+- (void)deleteEvent:(UIButton *)sender {
+    
+    EKEventStore *store = [[EKEventStore alloc] init];
+    EKEvent *eventToDelete = [store eventWithIdentifier:_eventSavedId];
+
+    if (eventToDelete != nil) {
+        NSError* error = nil;
+        [store removeEvent:eventToDelete span:EKSpanThisEvent error:&error];
+    }
+    
+    NSLog(@"the event %@, was deleted", eventToDelete.title);
 }
 
 
