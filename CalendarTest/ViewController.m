@@ -37,6 +37,7 @@
     
     _eventLabel = [UILabel new];
     [self.view addSubview:_eventLabel];
+    _eventLabel.textAlignment = NSTextAlignmentCenter;
 }
 
 - (void)didReceiveMemoryWarning {
