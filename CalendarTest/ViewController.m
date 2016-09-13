@@ -96,7 +96,7 @@
         [_eventStore requestAccessToEntityType:EKEntityTypeEvent completion:^(BOOL granted, NSError *error) {
             
             if (granted){
-                [self ifUserAllowsCalendarPermission:_eventStore];
+                [self ifUserAllowsCalendarPermission];
             }
             else
             {
@@ -106,7 +106,7 @@
     }
 }
 
-- (void)ifUserAllowsCalendarPermission:(EKEventStore*)eventStore {
+- (void)ifUserAllowsCalendarPermission {
     
     __weak ViewController *weakSelf = self;
     
@@ -118,7 +118,7 @@
         
         UIAlertAction *saveDate = [UIAlertAction actionWithTitle:@"Save"
                                                            style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
-                                                               [weakSelf saveEventInCalendar:eventStore];
+                                                               [weakSelf saveEventInCalendar];
                                                            }];//save data block end
         
         UIAlertAction *dontSaveDate = [UIAlertAction actionWithTitle:@"Cancel"
@@ -132,9 +132,9 @@
     });
 }
 
-- (void)saveEventInCalendar:(EKEventStore *)eventStore {
+- (void)saveEventInCalendar {
     
-    EKEvent *event = [EKEvent eventWithEventStore:eventStore];
+    EKEvent *event = [EKEvent eventWithEventStore:_eventStore];
     event.title = _textField.text;
     event.notes = @"dont forget this event!!";
     
@@ -143,15 +143,15 @@
     
     event.endDate   = [[NSDate alloc] initWithTimeInterval:5400 sinceDate:event.startDate];
     event.URL = [NSURL URLWithString:@"https://itunes.apple.com/us/app/oomami/id1053373398?ls=1&mt=8"];
-    [event setCalendar:[eventStore defaultCalendarForNewEvents]];
+    [event setCalendar:[_eventStore defaultCalendarForNewEvents]];
     EKAlarm *alarm=[EKAlarm alarmWithRelativeOffset:-3600];
     [event addAlarm:alarm];
     
-    [self checkIfEventExists:eventStore withEvent:event];
+    [self checkIfEventExistswithEvent:event];
     
     if(!self.eventExists){
         NSError *err;
-        BOOL save = [eventStore saveEvent:event span:EKSpanThisEvent error:&err];
+        BOOL save = [_eventStore saveEvent:event span:EKSpanThisEvent error:&err];
         self.eventSavedId = event.eventIdentifier;
         
         if (save) {
@@ -167,10 +167,10 @@
     _eventLabel.text = event.title;
 }
 
-- (void)checkIfEventExists:(EKEventStore*)eventStore withEvent:(EKEvent*)event {
+- (void)checkIfEventExistswithEvent:(EKEvent*)event {
     
-    NSPredicate *predicate = [eventStore predicateForEventsWithStartDate:event.startDate endDate:event.endDate calendars:nil];
-    NSArray *eventsOnDate = [eventStore eventsMatchingPredicate:predicate];
+    NSPredicate *predicate = [_eventStore predicateForEventsWithStartDate:event.startDate endDate:event.endDate calendars:nil];
+    NSArray *eventsOnDate = [_eventStore eventsMatchingPredicate:predicate];
     self.eventExists  = NO;
     [eventsOnDate enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         EKEvent *eventToCheck = (EKEvent*)obj;
