@@ -17,6 +17,7 @@
 @property (nonatomic, strong) UITextField *textField;
 @property (nonatomic, strong) UILabel *eventLabel;
 @property (nonatomic, strong) UIButton *deleteButton;
+@property (nonatomic, strong) EKEventStore *eventStore;
 
 
 @end
@@ -45,6 +46,9 @@
     [_deleteButton setTitle:@"Delete" forState:UIControlStateNormal];
     [_deleteButton setBackgroundColor:[UIColor blackColor]];
     [self.view addSubview:_deleteButton];
+    
+    _eventStore = [EKEventStore new];
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -88,12 +92,11 @@
 
 - (void)onEventbuttonTapped:(UIButton *)sender {
     
-    EKEventStore *eventStore = [[EKEventStore alloc] init];
-    if([eventStore respondsToSelector:@selector(requestAccessToEntityType:completion:)]) {
-        [eventStore requestAccessToEntityType:EKEntityTypeEvent completion:^(BOOL granted, NSError *error) {
+    if([_eventStore respondsToSelector:@selector(requestAccessToEntityType:completion:)]) {
+        [_eventStore requestAccessToEntityType:EKEntityTypeEvent completion:^(BOOL granted, NSError *error) {
             
             if (granted){
-                [self ifUserAllowsCalendarPermission:eventStore];
+                [self ifUserAllowsCalendarPermission:_eventStore];
             }
             else
             {
@@ -144,7 +147,7 @@
     EKAlarm *alarm=[EKAlarm alarmWithRelativeOffset:-3600];
     [event addAlarm:alarm];
     
-    [self checkIfEventExists:eventStore:event];
+    [self checkIfEventExists:eventStore withEvent:event];
     
     if(!self.eventExists){
         NSError *err;
@@ -164,7 +167,7 @@
     _eventLabel.text = event.title;
 }
 
-- (void)checkIfEventExists:(EKEventStore*)eventStore :(EKEvent*)event {
+- (void)checkIfEventExists:(EKEventStore*)eventStore withEvent:(EKEvent*)event {
     
     NSPredicate *predicate = [eventStore predicateForEventsWithStartDate:event.startDate endDate:event.endDate calendars:nil];
     NSArray *eventsOnDate = [eventStore eventsMatchingPredicate:predicate];
@@ -236,15 +239,15 @@
 
 - (void)deleteEvent:(UIButton *)sender {
     
-    EKEventStore *store = [[EKEventStore alloc] init];
-    EKEvent *eventToDelete = [store eventWithIdentifier:_eventSavedId];
+    EKEvent *eventToDelete = [_eventStore eventWithIdentifier:_eventSavedId];
 
     if (eventToDelete != nil) {
         NSError* error = nil;
-        [store removeEvent:eventToDelete span:EKSpanThisEvent error:&error];
+        [_eventStore removeEvent:eventToDelete span:EKSpanThisEvent error:&error];
+        NSLog(@"the event %@, was deleted", eventToDelete.title);
+
     }
     
-    NSLog(@"the event %@, was deleted", eventToDelete.title);
 }
 
 
